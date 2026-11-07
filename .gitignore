@@ -25,7 +25,7 @@ _fresh-server.js
 .dsh-vision-router/
 
 # ── 与本项目无关的其它子工程 ──
-/excel-demo/
+/课表/excel-demo/
 /game1/
 
 # ── 系统杂项 ──

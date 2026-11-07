@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#3b82f6">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<title>极简课表</title>
+<link rel="stylesheet" href="style.css?v=139">
+</head>
+<body>
+
+<!-- ═══ 顶栏：周数切换 ═══ -->
+<header id="appbar">
+  <div class="appbar-left">
+    <span class="logo">课表</span>
+  </div>
+  <div class="week-switch">
+    <button id="week-prev" class="icon-btn" aria-label="上一周">‹</button>
+    <button id="week-label" class="week-label" aria-label="选择周数">第 1 周</button>
+    <button id="week-next" class="icon-btn" aria-label="下一周">›</button>
+    <button id="btn-today" class="text-btn">本周</button>
+  </div>
+</header>
+
+<main>
+  <!-- ═══ 视图①：课表（冻结窗格：表头固定 + 内容区仅上下滚动） ═══ -->
+  <section id="view-schedule" class="view">
+    <div id="schedule-wrap" class="schedule-wrap">
+      <div id="schedule-head" class="schedule-head"></div>
+      <div id="schedule-scroll" class="schedule-scroll">
+        <div id="schedule-grid" class="schedule-grid"></div>
+      </div>
+    </div>
+    <div id="schedule-hint" class="hint"></div>
+  </section>
+
+  <!-- ═══ 视图②：今日 ═══ -->
+  <section id="view-today" class="view active">
+    <div id="today-next" class="next-card"></div>
+    <div class="section-title">今日课程</div>
+    <div id="today-list" class="today-list"></div>
+  </section>
+
+  <!-- ═══ 视图③：倒计时 ═══ -->
+  <section id="view-countdown" class="view">
+    <div id="cd-next-card" class="next-card"></div>
+    <div class="section-title">倒数日</div>
+    <div id="cd-list" class="cd-list"></div>
+    <button id="cd-add" class="fab" aria-label="新增倒数日">＋</button>
+  </section>
+
+  <!-- ═══ 视图④：设置 ═══ -->
+  <section id="view-settings" class="view">
+    <div class="group">
+      <div class="group-title">外观</div>
+      <div class="row">
+        <label>主题</label>
+        <div id="set-theme-swatches" class="swatches"></div>
+      </div>
+      <div class="row">
+        <label>主色调</label>
+        <div class="accent-row">
+          <input type="color" id="set-accent" value="#3b82f6" aria-label="自定义主色调">
+          <button id="set-accent-reset" class="mini-btn">跟随主题</button>
+        </div>
+      </div>
+      <div class="row">
+        <label>深色模式</label>
+        <div id="set-dark" class="segmented">
+          <button data-v="light" class="active">浅色</button>
+          <button data-v="dark">深色</button>
+        </div>
+      </div>
+      <div class="row">
+        <label>时间显示</label>
+        <div id="set-time-mode" class="segmented">
+          <button data-v="pair" class="active">大学 · 双节合并</button>
+          <button data-v="single">中学 · 每节</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="group-title">学期与周数</div>
+      <div class="row">
+        <label>开学日期</label>
+        <input type="date" id="set-semester-start">
+      </div>
+      <div class="row">
+        <label>总周数</label>
+        <input type="number" id="set-total-weeks" min="4" max="30" inputmode="numeric">
+      </div>
+      <div class="row">
+        <label>当前周</label>
+        <div id="set-week-mode" class="segmented">
+          <button data-v="auto" class="active">自动</button>
+          <button data-v="manual">手动</button>
+        </div>
+      </div>
+      <div class="row" id="set-week-row" style="display:none">
+        <label>周数</label>
+        <input type="number" id="set-current-week" min="1" inputmode="numeric">
+      </div>
+      <div class="row">
+        <label></label>
+        <div class="row-actions">
+          <button id="set-btn-week-now" class="mini-btn">设为本周</button>
+          <button id="set-btn-week-reset" class="mini-btn">重置为自动</button>
+        </div>
+      </div>
+      <div class="row top vertical">
+        <label>节次时间</label>
+        <div class="collapse-box">
+          <button id="slot-editor-toggle" class="collapse-toggle" aria-expanded="false" aria-label="展开/收起节次时间">
+            <span id="slot-editor-toggle-label">展开编辑</span>
+            <i class="collapse-arrow">▾</i>
+          </button>
+          <div id="slot-editor-panel" class="collapse-panel" style="display:none">
+            <div id="slot-editor-list" class="slot-editor-list"></div>
+            <div class="row-actions">
+              <button id="slot-editor-add" class="mini-btn">＋ 添加节次</button>
+              <button id="slot-editor-reset" class="mini-btn">恢复默认</button>
+              <button id="slot-editor-save" class="mini-btn primary">保存节次</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="group-title">提醒</div>
+      <div class="row">
+        <label>上课提醒</label>
+        <div class="warn-row">
+          <label class="switch" aria-label="上课提醒开关"><input type="checkbox" id="set-remind"><span></span></label>
+          <input type="number" id="set-remind-minutes" min="1" max="1440" inputmode="numeric" aria-label="提醒分钟数">
+          <span class="warn-unit">分钟前提醒</span>
+        </div>
+      </div>
+      <div class="row">
+        <label>倒数预警</label>
+        <div class="warn-row">
+          <label class="switch" aria-label="倒数预警开关"><input type="checkbox" id="set-countdown-warn-on" checked><span></span></label>
+          <input type="number" id="set-countdown-warn" min="0" max="365" inputmode="numeric" aria-label="倒数预警天数">
+          <span class="warn-unit">天以内标红</span>
+        </div>
+      </div>
+      <div class="row">
+        <label>系统通知</label>
+        <button id="set-btn-notify" class="mini-btn">开启通知权限</button>
+      </div>
+      <div class="note">网页端提醒依赖浏览器通知权限；应用打开期间自动检测课程开始时间。提醒记录仅当天有效。</div>
+    </div>
+
+    <div class="group">
+      <div class="group-title">数据</div>
+      <div class="row">
+        <label>导入课表</label>
+        <div class="row-actions">
+          <button id="btn-import-excel" class="mini-btn">Excel / CSV</button>
+          <button id="btn-import-paste" class="mini-btn">粘贴表格</button>
+        </div>
+      </div>
+      <div class="row">
+        <label>数据</label>
+        <button id="btn-clear" class="mini-btn danger">清空全部数据</button>
+      </div>
+      <div class="note">支持 .xlsx / .csv：网格表（星期 × 节次）与列表表（一行一课）都能自动识别，导入前可逐条核对。文件在手机里找不到时，可直接在电脑/手机上打开表格复制，用「粘贴表格」导入。</div>
+    </div>
+
+    <div class="group">
+      <div class="group-title">关于</div>
+      <div class="about">极简课表 v1.32 · 本地存储</div>
+    </div>
+  </section>
+</main>
+
+<!-- ═══ 底部 Tab 栏 ═══ -->
+<nav id="tabbar">
+  <button class="tab active" data-view="today">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+    <span>今日</span>
+  </button>
+  <button class="tab" data-view="schedule">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+    <span>课表</span>
+  </button>
+  <button class="tab" data-view="countdown">
+    <svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9"/><path d="M12 7v5l4 2"/><circle cx="12" cy="12" r="9"/></svg>
+    <span>倒数日</span>
+  </button>
+  <button class="tab" data-view="settings">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.01a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55h.01a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.01a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg>
+    <span>设置</span>
+  </button>
+</nav>
+
+<!-- ═══ 弹层 / 轻提示 ═══ -->
+<div id="modal-root" class="modal-root"></div>
+<div id="toast-root" class="toast-root"></div>
+
+<!-- ═══ 隐藏文件输入 ═══ -->
+<!-- accept 必须是 */*：安卓选择器按 MIME 过滤，写窄了会把 .xls/.et/未知 MIME 的课表文件直接藏起来、选不中；
+     格式校验改在 excel-import.js 里做，并给出明确提示 -->
+<input type="file" id="file-excel" accept="*/*" hidden>
+
+<script src="app.js?v=139"></script>
+<script>
+/* PWA：仅 http/https 环境注册 Service Worker（离线缓存） */
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || ['localhost', '127.0.0.1'].indexOf(location.hostname) >= 0)) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('sw.js').catch(function () {});
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">极简课表</string>
+    <string name="title_activity_main">极简课表</string>
+    <string name="package_name">com.minimal.timetable</string>
+    <string name="custom_url_scheme">com.minimal.timetable</string>
+</resources>

@@ -1,0 +1,9 @@
+{
+  "appId": "com.minimal.timetable",
+  "appName": "极简课表",
+  "webDir": "../minimal-timetable",
+  "backgroundColor": "#f5f6fa",
+  "android": {
+    "allowMixedContent": false
+  }
+}
